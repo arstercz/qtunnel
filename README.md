@@ -75,6 +75,28 @@ Special thanks to [Paul](http://paulrosenzweig.com) for reviewing the code.
 
 We encourage you to contribute to `qtunnel`! Please feel free to [submit a bug report](https://github.com/getqujing/qtunnel/issues), [fork the repo](https://github.com/getqujing/qtunnel/fork) or [create a pull request](https://github.com/getqujing/qtunnel/pulls).
 
+### Configure
+
+Support multi connection from read configure file, and running in daemon mode. config file like :
+```
+[server1]
+faddr = 10.0.21.5:16380
+baddr = 10.0.21.7:6380
+cryptoMethod = rc4
+secret = 6380_secypt
+clientmode = false
+
+[conn1]
+faddr = 10.0.21.5:26380
+baddr = 10.0.21.5:16380
+cryptoMethod = rc4
+secret = 6380_secypt
+clientmode = true
+```
+
+now, we can run it by:
+```./bin/qtunnel -daemon -conf=/etc/conn.conf -logto=syslog```
+
 ### License
 
 `qtunnel` is released under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
