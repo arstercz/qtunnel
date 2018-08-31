@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"syscall"
 	"tunnel"
+	"time"
+	"net"
 )
 
 func waitSignal() {
@@ -26,8 +28,17 @@ func waitSignal() {
 	}
 }
 
+func check_port(addr string) bool {
+	conn, err := net.DialTimeout("tcp", addr, 100*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
+
 func main() {
-	var faddr, baddr, cryptoMethod, secret, logTo, conf string
+	var faddr, baddr, cryptoMethod, secret, logTo, conf, tag string
 	var clientMode, daemon bool
 	flag.StringVar(&logTo, "logto", "stdout", "stdout or syslog")
 	flag.StringVar(&faddr, "listen", ":9001", "host:port qtunnel listen on")
@@ -35,6 +46,7 @@ func main() {
 	flag.StringVar(&cryptoMethod, "crypto", "rc4", "encryption method")
 	flag.StringVar(&secret, "secret", "secret", "password used to encrypt the data")
 	flag.StringVar(&conf, "conf", "", "read connection setup from config file")
+	flag.StringVar(&tag, "tag", "", "only setup the tag in config file")
 	flag.BoolVar(&clientMode, "clientmode", false, "if running at client mode")
 	flag.BoolVar(&daemon, "daemon", false, "running in daemon mode")
 	flag.Parse()
@@ -67,11 +79,19 @@ func main() {
 			if s == "default" {
 				continue
 			}
+			if len(tag) > 0 && s != tag {
+				continue
+			}
 			fdr, _ := c.GetString(s, "faddr")
 			bdr, _ := c.GetString(s, "baddr")
 			cld, _ := c.GetBool(s, "clientmode")
 			crt, _ := c.GetString(s, "cryptoMethod")
 			set, _ := c.GetString(s, "secret")
+
+			if check_port(fdr) {
+				log.Printf("qtunnel already bind %s", fdr)
+				continue
+			}
 
 			go func() {
 				t := tunnel.NewTunnel(fdr, bdr, cld, crt, set, 4096)
