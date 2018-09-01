@@ -170,15 +170,14 @@ get_pid() {
   pid_list=$(pidof qtunnel)
   [ -z "$pid_list" ] && return 0
   ps -o pid -o command -p $pid_list | perl -ne '
-    chomp;
     if(/^\s*(\d+?)\s+/) {
       my $pid = $1;
       if(/-tag\s+(.+)$/) {
         print $pid if $1 eq $ENV{Qtag};
         last;
       }
-      elsif (not exists $ENV{Qtag}) {
-        print $pid
+      else {
+        print $pid;
         last;
       }
     }
@@ -219,7 +218,7 @@ check_command || exit 1;
   exit 0;
 }
 
-[[ $is_all -eq 1 ]] && {
+[[ $is_all -eq 1 ]] && [[ $is_kill -ne 1 ]] && {
   exec_qtunnel $conf
   exit $?
 }
