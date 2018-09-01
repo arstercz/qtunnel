@@ -174,10 +174,12 @@ get_pid() {
       my $pid = $1;
       if(/-tag\s+(.+)$/) {
         print $pid if $1 eq $ENV{Qtag};
+        # if not specified tag
+        print $pid if exists $ENV{Qtag};
         last;
       }
       else {
-        print $pid;
+        print "$pid\n";
         last;
       }
     }
