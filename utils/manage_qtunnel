@@ -173,9 +173,11 @@ get_pid() {
     if(/^\s*(\d+?)\s+/) {
       my $pid = $1;
       if(/-tag\s+(.+)$/) {
-        print $pid if $1 eq $ENV{Qtag};
-        # if not specified tag
-        print $pid if exists $ENV{Qtag};
+        if(exists $ENV{Qtag}) {
+          do { print $pid; last; } if $1 eq $ENV{Qtag};
+          # if not specified tag
+          print $pid;
+        }
         last;
       }
       else {

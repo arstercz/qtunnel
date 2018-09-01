@@ -71,26 +71,41 @@ func main() {
 		}
 		c, err := goconfig.ReadConfigFile(conf)
 		if err != nil {
-			log.Printf("read error from %s file", conf)
+			log.Println("read error from %s file", conf)
 			os.Exit(1)
 		}
 		sections := c.GetSections()
-		for _, s := range sections {
+		var s_len = len(sections)
+		for i, s := range sections {
+			if len(tag) > 0 && s != tag {
+				if i == s_len {
+					log.Printf("can not find tag %s, exit!", tag)
+					os.Exit(1)
+				}
+				continue
+			}
+
 			if s == "default" {
 				continue
 			}
-			if len(tag) > 0 && s != tag {
-				continue
+
+			fdr, err := c.GetString(s, "faddr")
+			bdr, err := c.GetString(s, "baddr")
+			cld, err := c.GetBool(s, "clientmode")
+			crt, err := c.GetString(s, "cryptoMethod")
+			set, err := c.GetString(s, "secret")
+			if (err != nil) {
+				log.Fatalln("qtunnel config error with tag: %s", tag)
+				os.Exit(1)
 			}
-			fdr, _ := c.GetString(s, "faddr")
-			bdr, _ := c.GetString(s, "baddr")
-			cld, _ := c.GetBool(s, "clientmode")
-			crt, _ := c.GetString(s, "cryptoMethod")
-			set, _ := c.GetString(s, "secret")
 
 			if check_port(fdr) {
 				log.Printf("qtunnel already bind %s", fdr)
-				continue
+				if (len(tag) > 0) {
+					os.Exit(1)
+				} else {
+					continue
+				}
 			}
 
 			go func() {
