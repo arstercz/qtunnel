@@ -1,4 +1,4 @@
-#qTunnel
+# qTunnel
 
 ### qTunnel - a simpler and (possibily) faster tunnel program
 
@@ -96,6 +96,10 @@ clientmode = true
 
 now, we can run it by:
 ```./bin/qtunnel -daemon -conf=/etc/conn.conf -logto=syslog```
+
+### utils
+
+`utils/manage_qtunnel`: manage the qtunnel through the config file.
 
 ### License
 
