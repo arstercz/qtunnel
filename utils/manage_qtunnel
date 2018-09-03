@@ -250,7 +250,7 @@ manage_qtunnel - manage the qtunnel through the configure file
   Usage: manage_qtunnel [option]
   options:
     -c | --conf:    path of the qtunnel conf option. default is /etc/conn.conf.
-    -a | --all:     whether start all qtunnel tags or not.
+    -a | --all:     whether start all qtunnel tags or not. default is 1 when no -t value.
     -t | --tag:     the section tag in configure file.
     -l | --list:    list all tags in configure file.
     -r | --run:     list only running tags.
