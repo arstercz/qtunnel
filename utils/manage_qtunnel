@@ -126,7 +126,7 @@ list_run() {
    [ -z "$pid_list" ] && echo " No tags running" && return 0
    ps -o pid -o command -p $pid_list | perl -ne '
      chomp;
-     if(/^(\d+?)\s+/) {
+     if(/^\s*(\d+?)\s+/) {
        my $pid = $1;
        if(/-tag\s+(.+)$/) {
          push @a, "$pid -> $1";
@@ -175,10 +175,7 @@ get_pid() {
       if(/-tag\s+(.+)$/) {
         if(exists $ENV{Qtag}) {
           do { print $pid; last; } if $1 eq $ENV{Qtag};
-          # if not specified tag
-          print $pid;
         }
-        last;
       }
       else {
         print "$pid\n";
