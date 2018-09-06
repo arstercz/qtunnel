@@ -61,10 +61,8 @@ do
 done
 
 conf="${conf:-/etc/conn.conf}"
-
-if [ -z $tag ]; then
-  is_all=1
-fi
+is_all="${is_all:-0}"
+is_start="${is_start:-1}"
 
 if [[ $is_kill -ne 1 ]]; then
   is_start=1
@@ -223,6 +221,10 @@ check_command || exit 1;
   exec_qtunnel $conf
   exit $?
 }
+
+if [ -z $tag ]; then
+  warn "need tag info!"
+fi
 
 [[ $is_start -eq 1 ]] && {
   pid=$(get_pid $tag)
