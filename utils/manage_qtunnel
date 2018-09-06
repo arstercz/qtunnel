@@ -83,7 +83,8 @@ check_command() {
 # list tags
 list_tags() {
   # list all tag
-  cat /etc/conn.conf | \
+
+  cat $1 | \
     perl -ne '
       chomp;
       if(/\[.+\]/) {
@@ -153,13 +154,6 @@ exec_qtunnel() {
       } || {
         log "start qtunnel with tag $tag error!"
       }
-  else
-    qtunnel -conf $conf -daemon -logto syslog && {
-        pid=$(get_pid)
-        log "start qtunnel with all tags ok. - pid: $pid"
-      } || {
-        log "start qtunnel with all tags error."
-      }
   fi
 }
 
@@ -208,7 +202,7 @@ kill_qtunnel() {
 check_command || exit 1;
 
 [[ $is_list -eq 1 ]] && {
-  list_tags
+  list_tags $conf
   exit 0;
 }
 
@@ -218,11 +212,14 @@ check_command || exit 1;
 }
 
 [[ $is_all -eq 1 ]] && [[ $is_kill -ne 1 ]] && {
-  exec_qtunnel $conf
-  exit $?
+  perl -ne 'chomp; print $1 . "\n" if /\[(.+?)\]/' $conf | \
+  while read TAG
+  do
+    exec_qtunnel $conf $TAG
+  done
 }
 
-if [ -z $tag ]; then
+if [[ $is_all -ne 1 ]] && [ -z $tag ]; then
   warn "need tag info!"
 fi
 
