@@ -62,7 +62,6 @@ done
 
 conf="${conf:-/etc/conn.conf}"
 is_all="${is_all:-0}"
-is_start="${is_start:-1}"
 
 if [[ $is_kill -ne 1 ]]; then
   is_start=1
