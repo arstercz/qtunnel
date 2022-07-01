@@ -60,7 +60,7 @@ do
   shift
 done
 
-conf="${conf:-/etc/conn.conf}"
+conf="${conf:-/etc/qtunnel.conf}"
 is_all="${is_all:-0}"
 
 if [[ $is_kill -ne 1 ]]; then
@@ -86,6 +86,8 @@ list_tags() {
   cat $1 | \
     perl -ne '
       chomp;
+      next if /^\s*(#|;)/;
+
       if(/\[.+\]/) {
         s/(?:\[|\])//g;
         $n{$_}{tag} = $_;
