@@ -15,6 +15,20 @@ import (
 	"net"
 )
 
+func isTagInSection(sections []string, tag string) bool {
+	if tag == "" {
+		return false
+	}
+
+	for _, v := range sections {
+		if v == tag {
+			return true
+		}
+	}
+
+	return false
+}
+
 func waitSignal() {
 	var sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan)
@@ -40,6 +54,7 @@ func check_port(addr string) bool {
 func main() {
 	var faddr, baddr, cryptoMethod, secret, logTo, conf, tag string
 	var clientMode, daemon bool
+	var buffer uint
 	flag.StringVar(&logTo, "logto", "stdout", "stdout or syslog")
 	flag.StringVar(&faddr, "listen", ":9001", "host:port qtunnel listen on")
 	flag.StringVar(&baddr, "backend", "127.0.0.1:6400", "host:port of the backend")
@@ -47,6 +62,7 @@ func main() {
 	flag.StringVar(&secret, "secret", "secret", "password used to encrypt the data")
 	flag.StringVar(&conf, "conf", "", "read connection setup from config file")
 	flag.StringVar(&tag, "tag", "", "only setup the tag in config file")
+	flag.UintVar(&buffer, "buffer", 4096, "tunnel buffer size")
 	flag.BoolVar(&clientMode, "clientmode", false, "if running at client mode")
 	flag.BoolVar(&daemon, "daemon", false, "running in daemon mode")
 	flag.Parse()
@@ -75,16 +91,11 @@ func main() {
 			os.Exit(1)
 		}
 		sections := c.GetSections()
-		var s_len = len(sections)
-		for i, s := range sections {
-			if len(tag) > 0 && s != tag {
-				if i == s_len {
-					log.Printf("can not find tag %s, exit!", tag)
-					os.Exit(1)
-				}
-				continue
-			}
-
+		if !isTagInSection(sections, tag) {
+			log.Printf("can not find tag %s, exit!", tag)
+			os.Exit(1)
+		}
+		for _, s := range sections {
 			if s == "default" {
 				continue
 			}
@@ -109,13 +120,13 @@ func main() {
 			}
 
 			go func() {
-				t := tunnel.NewTunnel(fdr, bdr, cld, crt, set, 4096)
+				t := tunnel.NewTunnel(fdr, bdr, cld, crt, set, uint32(buffer))
 				log.Printf("qtunnel start from %s to %s.", fdr, bdr)
 				t.Start()
 			}()
 		}
 	} else {
-		t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret, 4096)
+		t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret, uint32(buffer))
 		log.Println("qtunnel started.")
 		go t.Start()
 	}
