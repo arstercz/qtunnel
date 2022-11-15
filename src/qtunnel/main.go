@@ -53,7 +53,7 @@ func check_port(addr string) bool {
 
 func main() {
 	var faddr, baddr, cryptoMethod, secret, logTo, conf, tag string
-	var clientMode, daemon bool
+	var clientMode, keepAlive, daemon bool
 	var buffer uint
 	flag.StringVar(&logTo, "logto", "stdout", "stdout or syslog")
 	flag.StringVar(&faddr, "listen", ":9001", "host:port qtunnel listen on")
@@ -64,6 +64,7 @@ func main() {
 	flag.StringVar(&tag, "tag", "", "only setup the tag in config file")
 	flag.UintVar(&buffer, "buffer", 4096, "tunnel buffer size")
 	flag.BoolVar(&clientMode, "clientmode", false, "if running at client mode")
+	flag.BoolVar(&keepAlive, "keepalive", false, "whether enable tcp keepalive or not")
 	flag.BoolVar(&daemon, "daemon", false, "running in daemon mode")
 	flag.Parse()
 
@@ -96,7 +97,7 @@ func main() {
 			os.Exit(1)
 		}
 		for _, s := range sections {
-			if s == "default" {
+			if s == "default" || (s != "" && s != tag) {
 				continue
 			}
 
@@ -120,13 +121,13 @@ func main() {
 			}
 
 			go func() {
-				t := tunnel.NewTunnel(fdr, bdr, cld, crt, set, uint32(buffer))
+				t := tunnel.NewTunnel(fdr, bdr, cld, crt, set, uint32(buffer), keepAlive)
 				log.Printf("qtunnel start from %s to %s.", fdr, bdr)
 				t.Start()
 			}()
 		}
 	} else {
-		t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret, uint32(buffer))
+		t := tunnel.NewTunnel(faddr, baddr, clientMode, cryptoMethod, secret, uint32(buffer), keepAlive)
 		log.Println("qtunnel started.")
 		go t.Start()
 	}

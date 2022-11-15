@@ -15,9 +15,10 @@ type Tunnel struct {
     secret []byte
     sessionsCount int32
     pool *recycler
+    keepAlive bool
 }
 
-func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string, size uint32) *Tunnel {
+func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string, size uint32, KeepAlive bool) *Tunnel {
     a1, err := net.ResolveTCPAddr("tcp", faddr)
     if err != nil {
         log.Fatalln("resolve frontend error:", err)
@@ -34,6 +35,7 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
         secret: []byte(secret),
         sessionsCount: 0,
         pool: NewRecycler(size),
+	keepAlive: KeepAlive,
     }
 }
 
@@ -86,6 +88,7 @@ func (t *Tunnel) Start() {
     if err != nil {
         log.Fatal(err)
     }
+
     defer ln.Close()
 
     for {
@@ -94,6 +97,14 @@ func (t *Tunnel) Start() {
             log.Println("accept:", err)
             continue
         }
+        if t.keepAlive {
+            err = conn.SetKeepAlive(true)
+            err = conn.SetKeepAlivePeriod(60 * time.Second)
+            if err != nil {
+                log.Fatal("set conn keepalive error: %v", err)
+            }
+        }
+
         go t.transport(conn)
     }
 }
