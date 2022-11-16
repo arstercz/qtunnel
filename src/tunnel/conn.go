@@ -20,7 +20,7 @@ func NewConn(conn net.Conn, cipher *Cipher, pool *recycler) *Conn {
 }
 
 func (c *Conn) Read(b []byte) (int, error) {
-    c.conn.SetReadDeadline(time.Now().Add(30 * time.Minute))
+    c.conn.SetReadDeadline(time.Now().Add(24 * time.Hour))
     if c.cipher == nil {
         return c.conn.Read(b)
     }
