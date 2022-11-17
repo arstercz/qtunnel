@@ -15,10 +15,10 @@ type Tunnel struct {
     secret []byte
     sessionsCount int32
     pool *recycler
-    keepAlive bool
+    timeOut time.Duration
 }
 
-func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string, size uint32, KeepAlive bool) *Tunnel {
+func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string, size uint32, timeOut time.Duration) *Tunnel {
     a1, err := net.ResolveTCPAddr("tcp", faddr)
     if err != nil {
         log.Fatalln("resolve frontend error:", err)
@@ -35,7 +35,7 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
         secret: []byte(secret),
         sessionsCount: 0,
         pool: NewRecycler(size),
-	keepAlive: KeepAlive,
+	timeOut: timeOut,
     }
 }
 
@@ -67,11 +67,11 @@ func (t *Tunnel) transport(conn net.Conn) {
     atomic.AddInt32(&t.sessionsCount, 1)
     var bconn, fconn *Conn
     if t.clientMode {
-        fconn = NewConn(conn, nil, t.pool)
-        bconn = NewConn(conn2, cipher, t.pool)
+        fconn = NewConn(conn, nil, t.pool, t.timeOut)
+        bconn = NewConn(conn2, cipher, t.pool, t.timeOut)
     } else {
-        fconn = NewConn(conn, cipher, t.pool)
-        bconn = NewConn(conn2, nil, t.pool)
+        fconn = NewConn(conn, cipher, t.pool, t.timeOut)
+        bconn = NewConn(conn2, nil, t.pool, t.timeOut)
     }
     go t.pipe(bconn, fconn, writeChan)
     go t.pipe(fconn, bconn, readChan)
@@ -97,14 +97,6 @@ func (t *Tunnel) Start() {
             log.Println("accept:", err)
             continue
         }
-        if t.keepAlive {
-            err = conn.SetKeepAlive(true)
-            err = conn.SetKeepAlivePeriod(60 * time.Second)
-            if err != nil {
-                log.Fatal("set conn keepalive error: %v", err)
-            }
-        }
-
         go t.transport(conn)
     }
 }

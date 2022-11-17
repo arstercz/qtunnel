@@ -9,18 +9,20 @@ type Conn struct {
     conn net.Conn
     cipher *Cipher
     pool *recycler
+    timeout time.Duration
 }
 
-func NewConn(conn net.Conn, cipher *Cipher, pool *recycler) *Conn {
+func NewConn(conn net.Conn, cipher *Cipher, pool *recycler, timeout time.Duration) *Conn {
     return &Conn{
         conn: conn,
         cipher: cipher,
         pool: pool,
+	timeout: timeout,
     }
 }
 
 func (c *Conn) Read(b []byte) (int, error) {
-    c.conn.SetReadDeadline(time.Now().Add(24 * time.Hour))
+    c.conn.SetReadDeadline(time.Now().Add(c.timeout))
     if c.cipher == nil {
         return c.conn.Read(b)
     }
