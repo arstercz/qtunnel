@@ -33,6 +33,11 @@ func waitSignal() {
 	var sigChan = make(chan os.Signal, 1)
 	signal.Notify(sigChan)
 	for sig := range sigChan {
+		// ignore SIGURG, read from https://github.com/golang/go/issues/38290
+		if sig == syscall.SIGURG {
+			continue
+		}
+
 		if sig == syscall.SIGINT || sig == syscall.SIGTERM {
 			log.Printf("terminated by signal %v\n", sig)
 			return
