@@ -56,7 +56,8 @@ func (t *Tunnel) pipe(dst, src *Conn, c chan int64) {
 
 func (t *Tunnel) transport(conn net.Conn) {
     start := time.Now()
-    conn2, err := net.Dial("tcp", t.baddr)
+
+    conn2, err := net.DialTimeout("tcp", t.baddr, 3 * time.Second)
     if err != nil {
         log.Print(err)
         return
