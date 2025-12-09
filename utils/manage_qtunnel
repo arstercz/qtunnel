@@ -150,8 +150,12 @@ exec_qtunnel() {
   tag="$2"
   if [ -n "$tag" ]; then
     qtunnel -conf $conf -daemon -logto syslog -tag $tag &&{
+        st="ok"
         pid=$(get_pid $tag)
-        log "start qtunnel with tag $tag ok. - pid: $pid" 
+        if [[ "$pid"x == "x" ]]; then
+          st="error"
+        fi
+        log "start qtunnel with tag $tag $st. - pid: $pid" 
       } || {
         log "start qtunnel with tag $tag error!"
       }
@@ -160,7 +164,7 @@ exec_qtunnel() {
 
 get_pid() {
   export Qtag=$1
-  pid_list=$(pidof qtunnel)
+  sleep 0.5 && pid_list=$(pidof qtunnel)
   [ -z "$pid_list" ] && return 0
   ps -o pid -o command -p $pid_list | perl -ne '
     if(/^\s*(\d+?)\s+/) {
