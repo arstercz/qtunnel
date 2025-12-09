@@ -17,7 +17,7 @@ func NewConn(conn net.Conn, cipher *Cipher, pool *recycler, timeout time.Duratio
         conn: conn,
         cipher: cipher,
         pool: pool,
-	timeout: timeout,
+        timeout: timeout,
     }
 }
 

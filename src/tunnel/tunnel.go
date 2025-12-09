@@ -9,7 +9,8 @@ import (
 )
 
 type Tunnel struct {
-    faddr, baddr *net.TCPAddr
+    faddr *net.TCPAddr
+    baddr string
     clientMode bool
     cryptoMethod string
     secret []byte
@@ -23,13 +24,15 @@ func NewTunnel(faddr, baddr string, clientMode bool, cryptoMethod, secret string
     if err != nil {
         log.Fatalln("resolve frontend error:", err)
     }
-    a2, err := net.ResolveTCPAddr("tcp", baddr)
+    _, err = net.ResolveTCPAddr("tcp", baddr)
     if err != nil {
         log.Fatalln("resolve backend error:", err)
     }
+
+    // ignore resolve backend address, so that we can connect with domain name
     return &Tunnel{
         faddr: a1,
-        baddr: a2,
+        baddr: baddr,
         clientMode: clientMode,
         cryptoMethod: cryptoMethod,
         secret: []byte(secret),
@@ -53,7 +56,7 @@ func (t *Tunnel) pipe(dst, src *Conn, c chan int64) {
 
 func (t *Tunnel) transport(conn net.Conn) {
     start := time.Now()
-    conn2, err := net.DialTCP("tcp", nil, t.baddr)
+    conn2, err := net.Dial("tcp", t.baddr)
     if err != nil {
         log.Print(err)
         return
